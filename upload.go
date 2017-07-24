@@ -16,8 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// const MaxUploadSize = 5 * 1024 * 1024
-const MaxUploadSize = 500
+const MaxUploadSize = 5 * 1024 * 1024
 
 var (
 	openBracket  = []byte{'['}
