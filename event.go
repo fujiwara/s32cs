@@ -2,6 +2,10 @@ package s32cs
 
 import "time"
 
+type SQSEvent struct {
+	QueueURL string `json:"queue_url"`
+}
+
 type S3Event struct {
 	Records []struct {
 		EventVersion string    `json:"eventVersion"`

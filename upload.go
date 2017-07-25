@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudsearchdomain"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/pkg/errors"
 )
 
@@ -54,16 +55,18 @@ func (b *buffer) append(bs []byte) {
 type Domain struct {
 	domain *cloudsearchdomain.CloudSearchDomain
 	s3     *s3manager.Downloader
+	queue  *sqs.SQS
 	buf    *buffer
 }
 
-func NewDomain(s1 *session.Session, s2 *session.Session) *Domain {
+func NewDomain(csSess *session.Session, sess *session.Session) *Domain {
 	buf := &buffer{}
 	buf.Grow(MaxUploadSize)
 	buf.init()
 	return &Domain{
-		domain: cloudsearchdomain.New(s1),
-		s3:     s3manager.NewDownloader(s2),
+		domain: cloudsearchdomain.New(csSess),
+		s3:     s3manager.NewDownloader(sess),
+		queue:  sqs.New(sess),
 		buf:    buf,
 	}
 }

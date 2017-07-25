@@ -17,16 +17,23 @@ var domain *s32cs.Domain
 func run(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
 	if os.Getenv("FAIL") != "" {
 		err := errors.New("env FAIL defined. failing now")
-		log.Println(err)
 		return nil, err
 	}
-	var event s32cs.S3Event
+
+	var event s32cs.SQSEvent
 	if err := json.Unmarshal(msg, &event); err != nil {
-		log.Println(err)
 		return nil, err
 	}
-	if err := domain.Process(event); err != nil {
-		log.Println(err)
+	if event.QueueURL != "" {
+		log.Printf("starting process sqs %s", event.QueueURL)
+		return nil, domain.ProcessSQS(event.QueueURL)
+	}
+	var s3event s32cs.S3Event
+	if err := json.Unmarshal(msg, &s3event); err != nil {
+		return nil, err
+	}
+	log.Printf("starting process s3 %s", s3event)
+	if err := domain.Process(s3event); err != nil {
 		return nil, err
 	}
 	return true, nil
