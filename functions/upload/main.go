@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"os"
 
@@ -14,6 +15,11 @@ import (
 var domain *s32cs.Domain
 
 func run(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
+	if os.Getenv("FAIL") != "" {
+		err := errors.New("env FAIL defined. failing now")
+		log.Println(err)
+		return nil, err
+	}
 	var event s32cs.S3Event
 	if err := json.Unmarshal(msg, &event); err != nil {
 		log.Println(err)
