@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 
 	apex "github.com/apex/go-apex"
@@ -13,13 +14,13 @@ import (
 var domain *s32cs.Domain
 
 func run(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
-	var event S3Event
-	err := json.Unmarshal(msg, &event)
-	if err != nil {
+	var event s32cs.S3Event
+	if err := json.Unmarshal(msg, &event); err != nil {
+		log.Println(err)
 		return nil, err
 	}
-	err := domain.Process(event)
-	if err != nil {
+	if err := domain.Process(event); err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	return true, nil
