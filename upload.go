@@ -22,6 +22,7 @@ var (
 	openBracket  = []byte{'['}
 	closeBracket = []byte{']'}
 	comma        = []byte{','}
+	DEBUG        = false
 )
 
 type buffer struct {
@@ -103,16 +104,19 @@ func (d *Domain) fetch(bucket, key string) (io.ReadCloser, error) {
 func (d *Domain) Upload(src io.Reader) error {
 	dec := json.NewDecoder(src)
 	for {
-		var obj interface{}
-		err := dec.Decode(&obj)
-		if err != nil {
+		var record SDFRecord
+		if err := dec.Decode(&record); err != nil {
 			if err == io.EOF {
 				break
 			}
 			log.Printf("decode json failed %s", err)
 			continue
 		}
-		bs, err := json.Marshal(obj)
+		if err := record.Validate(); err != nil {
+			log.Printf("SDF record validation failed %s %#v", err, record)
+			continue
+		}
+		bs, err := json.Marshal(record)
 		if err != nil {
 			return err
 		}
@@ -131,7 +135,9 @@ func (d *Domain) flush() error {
 	defer d.buf.init()
 	d.buf.close()
 	log.Printf("starting upload %d bytes", d.buf.Len())
-	log.Println(string(d.buf.Bytes()))
+	if DEBUG {
+		log.Println(string(d.buf.Bytes()))
+	}
 	out, err := d.domain.UploadDocuments(
 		&cloudsearchdomain.UploadDocumentsInput{
 			ContentType: aws.String("application/json"),

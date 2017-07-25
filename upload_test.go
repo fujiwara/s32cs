@@ -17,6 +17,10 @@ var csSess = session.Must(session.NewSession(&aws.Config{
 var s3Sess = session.New()
 var domain = s32cs.NewDomain(csSess, s3Sess)
 
+func init() {
+	s32cs.DEBUG = true
+}
+
 func TestUpload(t *testing.T) {
 	f, err := os.Open(os.Getenv("TEST_SDF"))
 	if err != nil {

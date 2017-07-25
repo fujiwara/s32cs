@@ -1,2 +1,5 @@
 {"id":"12345","type":"add","fields":{"created_at":"2017-07-24T11:22:33Z","title":"\u30c6\u30b9\u30c8","id":"12345","description":"\u8cb4\u793e\u306e\u8a18\u8005\u304c\u6c7d\u8eca\u3067\u5e30\u793e\u3057\u305f"}}
+{"type":"add","id":"12347","fields":{"id":"12347","title":"\u001f"}}
 {"type":"add","id":"12346","fields":{"id":"12346","title":"\u30c6\u30b9\u30c82","description":"\u3068\u306a\u308a\u306e\u5ba2\u306f\u3088\u304f\u67ff\u98df\u3046\u5ba2\u3060","created_at":"2017-07-24T12:23:56Z"}}
+{"type":"delete","id":"99999"}
+{"type":"xxx"}
