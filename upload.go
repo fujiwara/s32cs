@@ -2,11 +2,13 @@ package s32cs
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -68,11 +70,18 @@ func NewDomain(s1 *session.Session, s2 *session.Session) *Domain {
 
 func (d *Domain) Process(event S3Event) error {
 	for _, record := range event.Records {
-		r, err := d.fetch(record.S3.Bucket.Name, record.S3.Object.Key)
+		name, key := record.S3.Bucket.Name, record.S3.Object.Key
+		r, err := d.fetch(name, key)
 		if err != nil {
 			return errors.Wrap(err, "fetch failed")
 		}
 		defer r.Close()
+		if strings.HasSuffix(key, ".gz") {
+			r, err = gzip.NewReader(r)
+			if err != nil {
+				return errors.Wrap(err, "new gzip reader failed")
+			}
+		}
 
 		if err = d.Upload(r); err != nil {
 			return errors.Wrap(err, "upload failed")
