@@ -79,12 +79,6 @@ func (d *Domain) Process(event S3Event) error {
 			return errors.Wrap(err, "fetch failed")
 		}
 		defer r.Close()
-		if strings.HasSuffix(key, ".gz") {
-			r, err = gzip.NewReader(r)
-			if err != nil {
-				return errors.Wrap(err, "new gzip reader failed")
-			}
-		}
 
 		if err = d.Upload(r); err != nil {
 			return errors.Wrap(err, "upload failed")
@@ -110,6 +104,10 @@ func (d *Domain) fetch(bucket, key string) (io.ReadCloser, error) {
 	}
 	log.Printf("%d bytes fetched", n)
 	tmp.Seek(0, os.SEEK_SET)
+
+	if strings.HasSuffix(key, ".gz") {
+		return gzip.NewReader(tmp)
+	}
 	return tmp, nil
 }
 
