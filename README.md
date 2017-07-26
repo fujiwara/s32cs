@@ -67,6 +67,18 @@ Line delimitered JSON only.
 
 id, type (add or delete) columns are required.
 
+## Using with Dead Letter Queue(DLQ)
+
+If Lambda use DLQ (SQS), s32cs also works by jobs from SQS.
+
+When s32cs invoked with `{"queue_url:""}` json object, s32cs will fetch jobs from the SQS and upload.
+
+```
+$ echo '{"queue_url":"https://sqs.ap-northeast-1.amazonaws.com/xxxxxxx/upload"} | apex invoke upload
+```
+
+You can this invocation periodically by CloudWatch Events scheduled jobs.
+
 ## Requirements
 
 - Go
