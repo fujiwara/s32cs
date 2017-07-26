@@ -6,7 +6,6 @@
   "language": "go",
   "role": "<YOUR role ARN>",
   "environment": {
-    "REGION": "ap-northeast-1",
     "ENDPOINT": "<YOUR CloudSearch document endpoint>"
   }
 }

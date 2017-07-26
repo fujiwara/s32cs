@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"os"
 
@@ -15,11 +14,6 @@ import (
 var domain *s32cs.Domain
 
 func run(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
-	if os.Getenv("FAIL") != "" {
-		err := errors.New("env FAIL defined. failing now")
-		return nil, err
-	}
-
 	var event s32cs.SQSEvent
 	if err := json.Unmarshal(msg, &event); err != nil {
 		return nil, err
@@ -41,7 +35,6 @@ func run(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
 
 func main() {
 	csSess := session.Must(session.NewSession(&aws.Config{
-		Region:   aws.String(os.Getenv("REGION")),
 		Endpoint: aws.String(os.Getenv("ENDPOINT")),
 	}))
 	s3Sess := session.New()
