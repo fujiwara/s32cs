@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/fujiwara/s32cs"
 )
@@ -26,12 +25,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	csSess := session.Must(session.NewSession(&aws.Config{
-		Endpoint: aws.String(endpoint),
-	}))
-	domain := s32cs.NewDomain(csSess, sess)
+	client := s32cs.NewClient(sess, endpoint)
 
-	err := domain.ProcessSQS(queueURL)
+	err := client.ProcessSQS(queueURL)
 	if err != nil {
 		log.Println(err)
 		os.Exit(1)

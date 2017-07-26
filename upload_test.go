@@ -5,17 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/fujiwara/s32cs"
 )
 
-var csSess = session.Must(session.NewSession(&aws.Config{
-	Region:   aws.String(os.Getenv("AWS_REGION")),
-	Endpoint: aws.String(os.Getenv("CS_ENDPOINT")),
-}))
-var s3Sess = session.New()
-var domain = s32cs.NewDomain(csSess, s3Sess)
+var sess = session.New()
+var client = s32cs.NewClient(sess, os.Getenv("CS_ENDPOINT"))
 
 func init() {
 	s32cs.DEBUG = true
@@ -27,7 +22,7 @@ func TestUpload(t *testing.T) {
 		t.Skip("test sdf file is not specified by TEST_SDF env")
 		return
 	}
-	if err := domain.Upload(f); err != nil {
+	if err := client.Upload(f, ""); err != nil {
 		t.Error(err)
 	}
 }
@@ -38,7 +33,7 @@ func TestProcess(t *testing.T) {
 	if err != nil {
 		t.Skip("TEST_EVENT_JSON invalid", err)
 	}
-	if err := domain.Process(event); err != nil {
+	if err := client.Process(event); err != nil {
 		t.Error(err)
 	}
 }

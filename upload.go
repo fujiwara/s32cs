@@ -52,42 +52,42 @@ func (b *buffer) append(bs []byte) {
 	b.Write(bs)
 }
 
-type Domain struct {
-	domain *cloudsearchdomain.CloudSearchDomain
-	s3     *s3manager.Downloader
-	queue  *sqs.SQS
-	buf    *buffer
+type Client struct {
+	endpoint string
+	s3       *s3manager.Downloader
+	queue    *sqs.SQS
+	buf      *buffer
 }
 
-func NewDomain(csSess *session.Session, sess *session.Session) *Domain {
+func NewClient(sess *session.Session, endpoint string) *Client {
 	buf := &buffer{}
 	buf.Grow(MaxUploadSize)
 	buf.init()
-	return &Domain{
-		domain: cloudsearchdomain.New(csSess),
-		s3:     s3manager.NewDownloader(sess),
-		queue:  sqs.New(sess),
-		buf:    buf,
+	return &Client{
+		endpoint: endpoint,
+		s3:       s3manager.NewDownloader(sess),
+		queue:    sqs.New(sess),
+		buf:      buf,
 	}
 }
 
-func (d *Domain) Process(event S3Event) error {
+func (c *Client) Process(event S3Event) error {
 	for _, record := range event.Records {
 		name, key := record.S3.Bucket.Name, record.S3.Object.Key
-		r, err := d.fetch(name, key)
+		r, err := c.fetch(name, key)
 		if err != nil {
 			return errors.Wrap(err, "fetch failed")
 		}
 		defer r.Close()
 
-		if err = d.Upload(r); err != nil {
+		if err = c.Upload(r, ""); err != nil {
 			return errors.Wrap(err, "upload failed")
 		}
 	}
 	return nil
 }
 
-func (d *Domain) fetch(bucket, key string) (io.ReadCloser, error) {
+func (c *Client) fetch(bucket, key string) (io.ReadCloser, error) {
 	tmp, err := ioutil.TempFile(os.TempDir(), "s32cs")
 	if err != nil {
 		return nil, errors.Wrap(err, "create tempfile failed")
@@ -95,7 +95,7 @@ func (d *Domain) fetch(bucket, key string) (io.ReadCloser, error) {
 	defer os.Remove(tmp.Name())
 
 	log.Printf("downloading s3://%s/%s", bucket, key)
-	n, err := d.s3.Download(tmp, &s3.GetObjectInput{
+	n, err := c.s3.Download(tmp, &s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
@@ -111,7 +111,11 @@ func (d *Domain) fetch(bucket, key string) (io.ReadCloser, error) {
 	return tmp, nil
 }
 
-func (d *Domain) Upload(src io.Reader) error {
+func (c *Client) Upload(src io.Reader, endpoint string) error {
+	if endpoint == "" {
+		endpoint = c.endpoint
+	}
+
 	dec := json.NewDecoder(src)
 	for {
 		var record SDFRecord
@@ -130,28 +134,34 @@ func (d *Domain) Upload(src io.Reader) error {
 		if err != nil {
 			return err
 		}
-		if !d.buf.allowAppend(bs) {
-			err := d.flush()
+		if !c.buf.allowAppend(bs) {
+			err := c.flush(endpoint)
 			if err != nil {
 				return err
 			}
 		}
-		d.buf.append(bs)
+		c.buf.append(bs)
 	}
-	return d.flush()
+	return c.flush(endpoint)
 }
 
-func (d *Domain) flush() error {
-	defer d.buf.init()
-	d.buf.close()
-	log.Printf("starting upload %d bytes", d.buf.Len())
+func (c *Client) flush(endpoint string) error {
+	defer c.buf.init()
+	c.buf.close()
+	log.Printf("starting upload %d bytes", c.buf.Len())
 	if DEBUG {
-		log.Println(string(d.buf.Bytes()))
+		log.Println(string(c.buf.Bytes()))
 	}
-	out, err := d.domain.UploadDocuments(
+
+	sess := session.Must(session.NewSession(&aws.Config{
+		Endpoint: aws.String(endpoint),
+	}))
+	domain := cloudsearchdomain.New(sess)
+
+	out, err := domain.UploadDocuments(
 		&cloudsearchdomain.UploadDocumentsInput{
 			ContentType: aws.String("application/json"),
-			Documents:   bytes.NewReader(d.buf.Bytes()),
+			Documents:   bytes.NewReader(c.buf.Bytes()),
 		},
 	)
 	if err != nil {

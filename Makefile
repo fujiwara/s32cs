@@ -3,3 +3,6 @@ cmd/s32cs-sqs/s32cs-sqs: cmd/s32cs-sqs/main.go *.go
 
 clean:
 	rm -f cmd/s32cs-sqs/s32cs-sqs
+
+test:
+	go test -v ./...

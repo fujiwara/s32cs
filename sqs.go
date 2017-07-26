@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
-func (d *Domain) ProcessSQS(queueURL string) error {
+func (d *Client) ProcessSQS(queueURL string) error {
 	for {
 		output, err := d.queue.ReceiveMessage(
 			&sqs.ReceiveMessageInput{
