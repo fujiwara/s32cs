@@ -6,6 +6,7 @@
   "language": "go",
   "role": "<YOUR role ARN>",
   "environment": {
-    "ENDPOINT": "<YOUR CloudSearch document endpoint>"
+    "ENDPOINT": "<YOUR CloudSearch document endpoint (default)>",
+    "KEY_REGEXP": "Regexp to extract an endpoint from key"
   }
 }

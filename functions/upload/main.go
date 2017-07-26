@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"regexp"
 
 	apex "github.com/apex/go-apex"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -33,6 +34,12 @@ func run(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
 }
 
 func main() {
-	client = s32cs.NewClient(session.New(), os.Getenv("ENDPOINT"))
+	var reg *regexp.Regexp
+	if r := os.Getenv("KEY_REGEXP"); r != "" {
+		reg = regexp.MustCompile(r)
+	} else {
+		reg = nil
+	}
+	client = s32cs.NewClient(session.New(), os.Getenv("ENDPOINT"), reg)
 	apex.HandleFunc(run)
 }

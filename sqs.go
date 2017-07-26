@@ -24,23 +24,23 @@ func (d *Client) ProcessSQS(queueURL string) error {
 			return err
 		}
 		if len(output.Messages) == 0 {
-			log.Println("no messages available")
+			log.Println("info\tno messages available")
 			return nil
 		}
 		for _, msg := range output.Messages {
 			dec := json.NewDecoder(strings.NewReader(*(msg.Body)))
 			var event S3Event
 			if err := dec.Decode(&event); err != nil {
-				log.Println("decode error", err, *(msg.MessageId), *(msg.Body))
+				log.Println("warn\tdecode error", err, *(msg.MessageId), *(msg.Body))
 				continue
 			}
-			log.Println("processing message", *(msg.MessageId))
+			log.Println("info\tprocessing message", *(msg.MessageId))
 			if err := d.Process(event); err != nil {
-				log.Println("processing failed", err)
+				log.Println("warn\tprocessing failed", err)
 				continue
 			}
 			err := retry.Retry(3, time.Second, func() error {
-				log.Println("deleting message", *(msg.MessageId))
+				log.Println("info\tdeleting message", *(msg.MessageId))
 				_, err := d.queue.DeleteMessage(&sqs.DeleteMessageInput{
 					QueueUrl:      aws.String(queueURL),
 					ReceiptHandle: msg.ReceiptHandle,
@@ -48,9 +48,9 @@ func (d *Client) ProcessSQS(queueURL string) error {
 				return err
 			})
 			if err != nil {
-				log.Println("delete message failed", err)
+				log.Println("error\tdelete message failed", err)
 			}
-			log.Println("done", *(msg.MessageId))
+			log.Println("info\tdone", *(msg.MessageId))
 		}
 	}
 	return nil
