@@ -56,6 +56,17 @@ This configuration works as below.
    1. Upload SDF to CloudSearch.
      - endpoint is determined by `ENDPOINT` environment value(default) or extract from a object key by `KEY_REGEXP`.
 
+## Source object file format
+
+Line delimitered JSON only.
+
+```json
+{"id":"123","type":"add","fields":{"foo":"bar","bar":["A","B"]}}
+{"id":"123","type":"delete"}
+```
+
+id, type (add or delete) columns are required.
+
 ## Requirements
 
 - Go
