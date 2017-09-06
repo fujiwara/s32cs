@@ -3,7 +3,7 @@
   "description": "Amazon Cloudsearch uploader via S3 event notification.",
   "memory": 128,
   "timeout": 60,
-  "language": "go",
+  "runtime": "golang",
   "role": "<YOUR role ARN>",
   "environment": {
     "ENDPOINT": "<YOUR CloudSearch document endpoint (default)>",
