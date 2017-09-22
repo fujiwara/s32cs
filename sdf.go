@@ -6,6 +6,7 @@ import (
 	"regexp"
 )
 
+// http://docs.aws.amazon.com/cloudsearch/latest/developerguide/preparing-data.html
 var InvalidChars = regexp.MustCompile("[^\u0009\u000a\u000d\u0020-\uD7FF\uE000-\uFFFD]")
 
 type SDFRecord struct {

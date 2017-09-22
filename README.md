@@ -15,7 +15,7 @@ Amazon CloudSearch document uploader via S3 event notification.
   "role": "<YOUR role ARN>",
   "environment": {
     "ENDPOINT": "<YOUR CloudSearch document default endpoint",
-    "KEY_REGEXP": "Regexp to extract an endpoint from key"
+    "KEY_REGEXP": "Regexp to extract an endpoint from S3 object key"
   }
 }
 ```
