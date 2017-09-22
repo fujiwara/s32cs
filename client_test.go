@@ -2,6 +2,8 @@ package s32cs_test
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"testing"
@@ -17,6 +19,26 @@ var (
 
 func init() {
 	s32cs.DEBUG = true
+}
+
+func flushToStdout(buf *s32cs.Buffer) error {
+	defer buf.Init()
+	buf.Close()
+	_, err := io.Copy(os.Stdout, buf)
+	fmt.Fprint(os.Stdout, "\n")
+	return err
+}
+
+func TestBuild(t *testing.T) {
+	f, err := os.Open(os.Getenv("TEST_SDF"))
+	if err != nil {
+		t.Skip("test sdf file is not specified by TEST_SDF env")
+		return
+	}
+	client := s32cs.NewClient(sess, endpoint, nil)
+	if err := client.BuildAndFlush(f, flushToStdout); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestUpload(t *testing.T) {

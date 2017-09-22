@@ -29,47 +29,53 @@ var (
 	DEBUG        = false
 )
 
-type buffer struct {
+type Buffer struct {
 	bytes.Buffer
 }
 
-func (b *buffer) init() {
+func NewBuffer() *Buffer {
+	buf := new(Buffer)
+	buf.Grow(MaxUploadSize)
+	buf.Init()
+	return buf
+}
+
+func (b *Buffer) Init() {
 	b.Reset()
 	b.Write(openBracket)
 }
 
-func (b *buffer) close() {
+func (b *Buffer) Close() {
 	b.Write(closeBracket)
 }
 
-func (b *buffer) allowAppend(bs []byte) bool {
+func (b *Buffer) allowAppend(bs []byte) bool {
 	return b.Len()+len(bs)+2 < MaxUploadSize
 }
 
-func (b *buffer) append(bs []byte) {
+func (b *Buffer) append(bs []byte) {
 	if b.Len() > 1 {
 		b.Write(comma)
 	}
 	b.Write(bs)
 }
 
+type Flusher func(*Buffer) error
+
 type Client struct {
 	endpoint string
 	s3       *s3manager.Downloader
 	queue    *sqs.SQS
-	buf      *buffer
+	buf      *Buffer
 	reg      *regexp.Regexp
 }
 
 func NewClient(sess *session.Session, endpoint string, reg *regexp.Regexp) *Client {
-	buf := &buffer{}
-	buf.Grow(MaxUploadSize)
-	buf.init()
 	return &Client{
 		endpoint: endpoint,
 		s3:       s3manager.NewDownloader(sess),
 		queue:    sqs.New(sess),
-		buf:      buf,
+		buf:      NewBuffer(),
 		reg:      reg,
 	}
 }
@@ -133,7 +139,13 @@ func (c *Client) Upload(src io.Reader, endpoint string) error {
 		endpoint = c.endpoint
 	}
 	log.Printf("info\tendpoint %s", endpoint)
+	f := func(buf *Buffer) error {
+		return uploadCloudSearch(buf, endpoint)
+	}
+	return c.BuildAndFlush(src, f)
+}
 
+func (c *Client) BuildAndFlush(src io.Reader, flush Flusher) error {
 	dec := json.NewDecoder(src)
 	for {
 		var record SDFRecord
@@ -153,22 +165,22 @@ func (c *Client) Upload(src io.Reader, endpoint string) error {
 			return err
 		}
 		if !c.buf.allowAppend(bs) {
-			err := c.flush(endpoint)
+			err := flush(c.buf)
 			if err != nil {
 				return err
 			}
 		}
 		c.buf.append(bs)
 	}
-	return c.flush(endpoint)
+	return flush(c.buf)
 }
 
-func (c *Client) flush(endpoint string) error {
-	defer c.buf.init()
-	c.buf.close()
-	log.Printf("info\tstarting upload %d bytes", c.buf.Len())
+func uploadCloudSearch(buf *Buffer, endpoint string) error {
+	defer buf.Init()
+	buf.Close()
+	log.Printf("info\tstarting upload %d bytes", buf.Len())
 	if DEBUG {
-		log.Println("debug\t" + string(c.buf.Bytes()))
+		log.Println("debug\t" + string(buf.Bytes()))
 	}
 
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -179,7 +191,7 @@ func (c *Client) flush(endpoint string) error {
 	out, err := domain.UploadDocuments(
 		&cloudsearchdomain.UploadDocumentsInput{
 			ContentType: aws.String("application/json"),
-			Documents:   bytes.NewReader(c.buf.Bytes()),
+			Documents:   bytes.NewReader(buf.Bytes()),
 		},
 	)
 	if err != nil {
