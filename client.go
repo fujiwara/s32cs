@@ -154,7 +154,7 @@ func (c *Client) BuildAndFlush(src io.Reader, flush Flusher) error {
 				break
 			}
 			log.Printf("warn\tdecode json failed %s", err)
-			continue
+			break
 		}
 		if err := record.Validate(); err != nil {
 			log.Printf("warn\tSDF record validation failed %s %#v", err, record)
