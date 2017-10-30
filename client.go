@@ -178,7 +178,12 @@ func (c *Client) BuildAndFlush(src io.Reader, flush Flusher) error {
 func uploadCloudSearch(buf *Buffer, endpoint string) error {
 	defer buf.Init()
 	buf.Close()
-	log.Printf("info\tstarting upload %d bytes", buf.Len())
+	size := buf.Len()
+	if size == 2 { // "[]"
+		log.Println("info\tbuffer is empty. upload canceled.")
+		return nil
+	}
+	log.Printf("info\tstarting upload %d bytes", size)
 	if DEBUG {
 		log.Println("debug\t" + string(buf.Bytes()))
 	}

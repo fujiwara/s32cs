@@ -1,6 +1,7 @@
 package s32cs_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,6 +38,14 @@ func TestBuild(t *testing.T) {
 	}
 	client := s32cs.NewClient(sess, endpoint, nil)
 	if err := client.BuildAndFlush(f, flushToStdout); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestBrokenJSON(t *testing.T) {
+	buf := bytes.NewBufferString(`{"id":"12345","type":"add"XXX"fields":{}}`)
+	client := s32cs.NewClient(sess, endpoint, nil)
+	if err := client.BuildAndFlush(buf, flushToStdout); err != nil {
 		t.Error(err)
 	}
 }
