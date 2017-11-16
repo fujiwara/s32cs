@@ -1,6 +1,9 @@
 package s32cs
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type SQSEvent struct {
 	QueueURL string `json:"queue_url"`
@@ -42,4 +45,9 @@ type S3Event struct {
 			} `json:"object"`
 		} `json:"s3"`
 	} `json:"Records"`
+}
+
+func (e S3Event) String() string {
+	b, _ := json.Marshal(&e)
+	return string(b)
 }
