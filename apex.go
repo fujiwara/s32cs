@@ -32,7 +32,7 @@ func ApexRun() {
 		if err := json.Unmarshal(msg, &s3event); err != nil {
 			return nil, err
 		}
-		log.Printf("starting process s3 %s", s3event)
+		log.Println("starting process s3 event:", s3event.String())
 		if err := client.Process(s3event); err != nil {
 			return nil, err
 		}
