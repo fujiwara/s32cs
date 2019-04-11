@@ -6,5 +6,7 @@ go:
   - 1.12.x
   - tip
 
-test:
+install:
+  - make clean
   - make test
+  - make
