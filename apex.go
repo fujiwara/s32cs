@@ -5,8 +5,10 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 
 	apex "github.com/apex/go-apex"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
@@ -39,5 +41,14 @@ func ApexRun() {
 		return true, nil
 	}
 
-	apex.HandleFunc(handler)
+	env := os.Getenv("AWS_EXECUTION_ENV")
+	if strings.HasPrefix(env, "AWS_Lambda_nodejs") {
+		// Apex node runtime (v0.x)
+		apex.HandleFunc(handler)
+	} else if strings.HasPrefix(env, "AWS_Lambda_go") {
+		// Go native runtime
+		lambda.Start(handler)
+	} else {
+		log.Printf("[error] Lambda execution environment %s is not supported", env)
+	}
 }
