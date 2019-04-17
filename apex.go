@@ -1,6 +1,7 @@
 package s32cs
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
@@ -56,6 +57,12 @@ func ApexRun() {
 	} else if strings.HasPrefix(env, "AWS_Lambda_go") {
 		// Go native runtime
 		lambda.Start(handler)
+	} else if strings.HasPrefix(env, "Test_AWS_Lambda_go") {
+		wrappedHandler := lambda.NewHandler(handler)
+		_, err := wrappedHandler.Invoke(context.Background(), []byte("{}"))
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		log.Printf("[error] Lambda execution environment %s is not supported", env)
 	}
