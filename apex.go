@@ -21,7 +21,7 @@ func ApexRun() {
 	}
 	client := NewClient(session.New(), os.Getenv("ENDPOINT"), reg)
 
-	handler := func(msg json.RawMessage, ctx *apex.Context) (interface{}, error) {
+	handler := func(msg json.RawMessage) (interface{}, error) {
 		var event SQSEvent
 		if err := json.Unmarshal(msg, &event); err != nil {
 			return nil, err
@@ -44,7 +44,15 @@ func ApexRun() {
 	env := os.Getenv("AWS_EXECUTION_ENV")
 	if strings.HasPrefix(env, "AWS_Lambda_nodejs") {
 		// Apex node runtime (v0.x)
-		apex.HandleFunc(handler)
+		apex.HandleFunc(func(event json.RawMessage, ctx *apex.Context) (interface{}, error) {
+			// redirect stdout to stderr in Apex functions
+			stdout := os.Stdout
+			os.Stdout = os.Stderr
+			defer func() {
+				os.Stdout = stdout
+			}()
+			return handler(event)
+		})
 	} else if strings.HasPrefix(env, "AWS_Lambda_go") {
 		// Go native runtime
 		lambda.Start(handler)
