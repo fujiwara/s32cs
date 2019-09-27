@@ -1,6 +1,7 @@
 package s32cs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -10,7 +11,7 @@ import (
 var InvalidChars = regexp.MustCompile("[^\u0009\u000a\u000d\u0020-\uD7FF\uE000-\uFFFD]")
 
 type SDFRecord struct {
-	ID     string                 `json:"id"`
+	ID     json.Number            `json:"id"`
 	Type   string                 `json:"type"`
 	Fields map[string]interface{} `json:"fields,omitempty"`
 }
