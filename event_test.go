@@ -36,7 +36,7 @@ var s3eventSrc = []byte(`{
                "arn":"arn:aws:s3:::mybucket"
             },
             "object":{
-               "key":"HappyFace.jpg",
+               "key":"Happy%3DFace.jpg",
                "size":1024,
                "eTag":"d41d8cd98f00b204e9800998ecf8427e",
                "versionId":"096fKKXTRTtl3on89fVO.nfljtsv6qko",
@@ -56,12 +56,15 @@ func TestS3Event(t *testing.T) {
 	if len(event.Records) != 1 {
 		t.Errorf("insufficient S3Event.Records. expected 1 got %d", len(event.Records))
 	}
-	s3 := event.Records[0].S3
-	name, key := s3.Bucket.Name, s3.Object.Key
+
+	name, key, err := event.Records[0].Parse()
+	if err != nil {
+		t.Error(err)
+	}
 	if name != "mybucket" {
 		t.Errorf("wrong bucket name: %s", name)
 	}
-	if key != "HappyFace.jpg" {
+	if key != "Happy=Face.jpg" {
 		t.Errorf("wrong key: %s", key)
 	}
 	t.Log(event.String())
