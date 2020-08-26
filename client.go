@@ -82,8 +82,11 @@ func NewClient(sess *session.Session, endpoint string, reg *regexp.Regexp) *Clie
 
 func (c *Client) Process(event S3Event) error {
 	for _, record := range event.Records {
-		name, key := record.S3.Bucket.Name, record.S3.Object.Key
-		r, err := c.fetch(name, key)
+		bucket, key, err := record.Parse()
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse event record")
+		}
+		r, err := c.fetch(bucket, key)
 		if err != nil {
 			return errors.Wrap(err, "fetch failed")
 		}
