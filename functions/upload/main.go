@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	s32cs.ApexRun()
+	s32cs.Run()
 }

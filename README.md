@@ -4,26 +4,24 @@ Amazon CloudSearch document uploader via S3 event notification.
 
 ## Usage
 
+Example Lambda functions configuration.
+
 ```js
-// project.json
 {
-  "name": "s32cs",
-  "description": "Amazon Cloudsearch uploader via S3 event notification.",
-  "memory": 128,
-  "timeout": 60,
-  "language": "go",
-  "role": "<YOUR role ARN>",
-  "environment": {
-    "ENDPOINT": "<YOUR CloudSearch document default endpoint",
-    "KEY_REGEXP": "Regexp to extract an endpoint from S3 object key"
-  }
+  "FunctionName": "s32cs",
+  "Description": "Amazon Cloudsearch uploader via S3 event notification.",
+  "Environment": {
+    "Variables": {
+      "ENDPOINT": "<YOUR CloudSearch document default endpoint",
+      "KEY_REGEXP": "Regexp to extract an endpoint from S3 object key"
+    }
+  },
+  "Handler": "s32cs",
+  "MemorySize": 128,
+  "Role": "<YOUR role ARN>",
+  "Runtime": "provided.al2",
+  "Timeout": 60
 }
-```
-
-Deploy a function to Lambda.
-
-```
-$ apex deploy
 ```
 
 Configure your S3 bucket. Set an event notification to the Lambda function.
@@ -33,16 +31,19 @@ Configure your S3 bucket. Set an event notification to the Lambda function.
 
 ```js
 {
-  "name": "s32cs",
-  "description": "Amazon Cloudsearch uploader via S3 event notification.",
-  "memory": 128,
-  "timeout": 60,
-  "language": "go",
-  "role": "arn:aws:iam::xxxxxxxxxxxx:role/s32cs_lambda_function",
-  "environment": {
-    "ENDPOINT": "example-nregueirgrehbuigre.ap-northeast-1.cloudsearch.amazonaws.com",
-    "KEY_REGEXP": "example/(.+?)/"
-  }
+  "FunctionName": "s32cs",
+  "Description": ""
+  "Environment": {
+    "Variables": {
+      "ENDPOINT": "example-nregueirgrehbuigre.ap-northeast-1.cloudsearch.amazonaws.com",
+      "KEY_REGEXP": "example/(.+?)/"
+    }
+  },
+  "Handler": "s32cs",
+  "MemorySize": 128,
+  "Role": "arn:aws:iam::xxxxxxxxxxxx:role/s32cs_lambda_function",
+  "Runtime": "provided.al2",
+  "Timeout": 60
 }
 ```
 
@@ -71,10 +72,11 @@ id, type (add or delete) columns are required.
 
 If Lambda use DLQ (SQS), s32cs also works by jobs from SQS.
 
-When s32cs invoked with `{"queue_url:""}` json object, s32cs will fetch jobs from the SQS and upload.
+When s32cs invoked with payload like `{"queue_url:""}`, s32cs will fetch jobs from the SQS and upload.
 
 ```
-$ echo '{"queue_url":"https://sqs.ap-northeast-1.amazonaws.com/xxxxxxx/upload"} | apex invoke upload
+// eample payload
+{"queue_url":"https://sqs.ap-northeast-1.amazonaws.com/xxxxxxx/upload"}
 ```
 
 You can this invocation periodically by CloudWatch Events scheduled jobs.
@@ -82,7 +84,6 @@ You can this invocation periodically by CloudWatch Events scheduled jobs.
 ## Requirements
 
 - Go
-- [Apex](http://apex.run)
 
 ## LICENSE
 

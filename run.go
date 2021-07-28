@@ -8,12 +8,11 @@ import (
 	"regexp"
 	"strings"
 
-	apex "github.com/apex/go-apex"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-func ApexRun() {
+func Run() {
 	var reg *regexp.Regexp
 	if r := os.Getenv("KEY_REGEXP"); r != "" {
 		reg = regexp.MustCompile(r)
@@ -43,19 +42,9 @@ func ApexRun() {
 	}
 
 	env := os.Getenv("AWS_EXECUTION_ENV")
-	if strings.HasPrefix(env, "AWS_Lambda_nodejs") {
-		// Apex node runtime (v0.x)
-		apex.HandleFunc(func(event json.RawMessage, ctx *apex.Context) (interface{}, error) {
-			// redirect stdout to stderr in Apex functions
-			stdout := os.Stdout
-			os.Stdout = os.Stderr
-			defer func() {
-				os.Stdout = stdout
-			}()
-			return handler(event)
-		})
-	} else if strings.HasPrefix(env, "AWS_Lambda_go") {
-		// Go native runtime
+	runtimeAPI := os.Getenv("AWS_LAMBDA_RUNTIME_API")
+
+	if strings.HasPrefix(env, "AWS_Lambda") || runtimeAPI != "" {
 		lambda.Start(handler)
 	} else if strings.HasPrefix(env, "Test_AWS_Lambda_go") {
 		wrappedHandler := lambda.NewHandler(handler)
