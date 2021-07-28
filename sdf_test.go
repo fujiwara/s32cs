@@ -19,9 +19,9 @@ var sdfs = []struct {
 		Expect: []byte(`{"id":"123","type":"add","fields":{"foo":"bar","bar":["A","B"]}}`),
 	},
 	{
-		Name:   "add_integer_id",
-		Src:    []byte(`{"id":123,"type":"add","fields":{"foo":"bar","bar":["A","B"]}}`),
-		Expect: []byte(`{"id":"123","type":"add","fields":{"foo":"bar","bar":["A","B"]}}`),
+		Name:   "add2",
+		Src:    []byte(`{"id":"xxx123","type":"add","fields":{"foo":"bar","bar":["A","B"]}}`),
+		Expect: []byte(`{"id":"xxx123","type":"add","fields":{"foo":"bar","bar":["A","B"]}}`),
 	},
 	{
 		Name:   "delete",
