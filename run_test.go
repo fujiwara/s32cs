@@ -7,8 +7,8 @@ import (
 	"github.com/fujiwara/s32cs"
 )
 
-func TestApexHandler(t *testing.T) {
+func TestHandler(t *testing.T) {
 	os.Setenv("AWS_EXECUTION_ENV", "Test_AWS_Lambda_go")
 	defer os.Setenv("AWS_EXECUTION_ENV", "")
-	s32cs.ApexRun()
+	s32cs.Run()
 }
